@@ -1,146 +1,3 @@
-// var express = require("express");
-// var router = express.Router();
-// var userModel = require("../Model/userModel");
-// var blogModel = require("../Model/blogModal/blogModel");
-// var bcrypt = require("bcrypt");
-// const multer  = require('multer')
-// const path=require('path')
-// var jwt=require('jsonwebtoken')
-
-// const secret='secret';
-
-// /* GET home page. */
-// router.get("/", function (req, res, next) {
-//   res.render("index", { title: "Express" });
-// });
-// router.post("/signup", async (req, res) => {
-//   let { username, name, password, email } = req.body;
-//   let emailCondition = await userModel.findOne({ email: email });
-//   if (emailCondition) {
-//     return res.json({
-//       success: false,
-//       msg: "Email already exists",
-//     });
-//   } else {
-//     bcrypt.genSalt(12, function (err, salt) {
-//       if (err) {
-//         return res
-//           .status(500)
-//           .json({ success: false, msg: "Internal server error" });
-//       }
-//       bcrypt.hash(password, salt, async function (err, hash) {
-//         if (err) {
-//           return res
-//             .status(500)
-//             .json({ success: false, msg: "Error hashing password" });
-//         }
-//         let user = await userModel.create({
-//           username: username,
-//           name: name,
-//           password: hash,
-//           email: email,
-//         });
-//         return res.json({
-//           success: true,
-//           msg: "User created",
-//         });
-//       });
-//     });
-//   }
-// });
-
-// router.post("/login", async (req, res) => {
-//   let { email, password } = req.body;
-//   let user = await userModel.findOne({ email: email });
-//   if (!user) {
-//     return res.json({
-//       success: false,
-//       msg: "User not found",
-//     });
-//   } else {
-//     bcrypt.compare(password, user.password, async function (err, result) {
-//       if (result) {
-//         let token=jwt.sign({userId: user._id},secret)
-//         return res.json({
-//           success: true,
-//           msg: "Login successful",
-//           token:token
-//         });
-//       }else{
-//         return res.json({
-//           success: false,
-//           msg: "Incorrect password",
-//         });
-//       }
-//     });
-//   }
-// });
-// const storage = multer.diskStorage({
-//   destination: function (req, file, cb) {
-//     // cb(null, '/uploads')
-//     cb(null, path.join(__dirname, '../uploads'));
-//   },
-//   filename: function (req, file, cb) {
-//     const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9)
-//     const extName= path.extname(file.originalname)
-//     cb(null, file.fieldname + '-' + uniqueSuffix+extName)
-//   }
-// })
-// const upload = multer({ storage: storage });
-// router.post('/uploadBlog',upload.single('image'),async (req,res)=>{
-//   try { 
-//     // let {token, title, desc, content} = req.body;
-//     // Decode the token to get the user ID
-//        // Get token from headers
-//        let token = req.headers.authorization;
-//        if (!token) {
-//          return res.status(401).json({ success: false, msg: "Token missing" });
-//        }
-//        console.log(token,'this is token')
-   
-//        // Remove 'Bearer ' prefix if present
-//        token = token.replace("Bearer ", "");
-//     let decoded = jwt.verify(token, secret);
-//     let user = await userModel.findOne({ _id: decoded.userId });
-    
-//     if (!user) {
-//       return res.json({
-//         success: false,
-//         msg: "User not found"
-//       });
-//     }
-    
-//     // Retrieve the file name from the uploaded file
-//     const imageName = req.file ? req.file.filename : null;
-
-//     // Create a new blog entry
-//     let blog = await blogModel.create({
-//       title: title,
-//       content: content,
-//       image: imageName, // Use the image name here
-//       desc: desc,
-//       user: user._id
-//     });
-
-//     // Respond with success
-//     return res.json({
-//       success: true,
-//       msg: "Blog created successfully",
-//       blog: blog
-//     });
-//   } catch (error) {
-//     console.error(error);
-//     return res.json({
-//       success: false,
-//       msg: "An error occurred",
-//     });
-//   }
-// });
-
-
-
-// module.exports = router;
-
 var express = require("express");
 var router = express.Router();
 var userModel = require("../Model/userModel");
@@ -164,22 +21,37 @@ router.post("/signup", async (req, res) => {
     let { username, name, password, email } = req.body;
     let emailCondition = await userModel.findOne({ email: email });
     if (emailCondition) {
-      return res.status(400).json({ success: false, msg: "Email already exists" });
+      return res
+        .status(400)
+        .json({ success: false, msg: "Email already exists" });
     }
 
     bcrypt.genSalt(12, function (err, salt) {
-      if (err) return res.status(500).json({ success: false, msg: "Internal server error" });
+      if (err)
+        return res
+          .status(500)
+          .json({ success: false, msg: "Internal server error" });
 
       bcrypt.hash(password, salt, async function (err, hash) {
-        if (err) return res.status(500).json({ success: false, msg: "Error hashing password" });
+        if (err)
+          return res
+            .status(500)
+            .json({ success: false, msg: "Error hashing password" });
 
-        let user = await userModel.create({ username, name, password: hash, email });
+        let user = await userModel.create({
+          username,
+          name,
+          password: hash,
+          email,
+        });
         return res.status(201).json({ success: true, msg: "User created" });
       });
     });
   } catch (error) {
     console.error(error);
-    return res.status(500).json({ success: false, msg: "Internal server error" });
+    return res
+      .status(500)
+      .json({ success: false, msg: "Internal server error" });
   }
 });
 
@@ -198,12 +70,16 @@ router.post("/login", async (req, res) => {
         let token = jwt.sign({ userId: user._id }, secret, { expiresIn: "1h" });
         return res.json({ success: true, msg: "Login successful", token });
       } else {
-        return res.status(401).json({ success: false, msg: "Incorrect password" });
+        return res
+          .status(401)
+          .json({ success: false, msg: "Incorrect password" });
       }
     });
   } catch (error) {
     console.error(error);
-    return res.status(500).json({ success: false, msg: "Internal server error" });
+    return res
+      .status(500)
+      .json({ success: false, msg: "Internal server error" });
   }
 });
 
@@ -234,7 +110,9 @@ router.post("/uploadBlog", upload.single("image"), async (req, res) => {
 
     // Validate JWT format
     if (token.split(".").length !== 3) {
-      return res.status(400).json({ success: false, msg: "Invalid JWT format" });
+      return res
+        .status(400)
+        .json({ success: false, msg: "Invalid JWT format" });
     }
 
     let decoded;
@@ -252,7 +130,9 @@ router.post("/uploadBlog", upload.single("image"), async (req, res) => {
     // Extract blog details from request
     let { title, desc, content } = req.body;
     if (!title || !desc || !content) {
-      return res.status(400).json({ success: false, msg: "All fields are required" });
+      return res
+        .status(400)
+        .json({ success: false, msg: "All fields are required" });
     }
 
     // Get uploaded file name
@@ -267,10 +147,75 @@ router.post("/uploadBlog", upload.single("image"), async (req, res) => {
       user: user._id,
     });
 
-    return res.status(201).json({ success: true, msg: "Blog created successfully", blog });
+    return res
+      .status(201)
+      .json({ success: true, msg: "Blog created successfully", blog });
   } catch (error) {
     console.error(error);
     return res.status(500).json({ success: false, msg: "An error occurred" });
+  }
+});
+
+router.post("/getBlogs", async (req, res) => {
+  let { token } = req.body;
+  let decoded = jwt.verify(token, secret);
+  let user = await userModel.findOne({ _id: decoded.userId });
+  if (!user) {
+    return res.status(404).json({ success: false, msg: "User not found" });
+  }else{
+    let blog=await blogModel.find({});
+    return res.json({
+      success: true,
+      msg: "Blogs fetched successfully",
+      blogs: blog
+    })
+  }
+});
+
+// router.post('/getBlog',async (req,res)=>{
+//   let {token ,blogId}=req.body;
+//   let decoded = jwt.verify(token, secret);
+//   let user = await userModel.findOne({ _id: decoded.userId });
+//   if (!user) {
+//     return res.status(404).json({ success: false, msg: "User not found" });
+//   }else{
+//     let blog=await blogModel.findById({_id : blogId});
+//     return res.json({
+//        success :true,
+//        msg : "Blog fetched successfully",
+//       blog : blog
+//     }) 
+//   }
+// })
+
+router.post('/getBlog', async (req, res) => {
+  let { token, blogId } = req.body;
+
+  if (!blogId || blogId.length !== 24) { // Check if blogId is valid
+    return res.status(400).json({ success: false, msg: "Invalid Blog ID" });
+  }
+
+  try {
+    let decoded = jwt.verify(token, secret);
+    let user = await userModel.findOne({ _id: decoded.userId });
+    if (!user) {
+      return res.status(404).json({ success: false, msg: "User not found" });
+    }
+
+    let blog = await blogModel.findById(blogId); // No need to wrap it in an object
+    if (!blog) {
+      return res.status(404).json({ success: false, msg: "Blog not found" });
+    }
+
+    return res.json({
+      success: true,
+      msg: "Blog fetched successfully",
+      blog: blog,
+    });
+
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ success: false, msg: "Internal server error" });
   }
 });
 
